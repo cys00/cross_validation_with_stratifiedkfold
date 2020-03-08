@@ -1,0 +1,108 @@
+"""
+Created on Sat Mar  7 13:55:35 2020
+
+@author: yusheng
+"""
+
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+'''
+The objective of a Linear SVC 
+(Support Vector Classifier) is to fit 
+to the data you provide, 
+returning a "best fit" hyperplane 
+that divides, or categorizes, your data. 
+From there, after getting the hyperplane, y
+ou can then feed some features 
+to your classifier to see 
+what the "predicted" class is.
+'''
+from sklearn.ensemble import RandomForestClassifier
+import numpy as np
+from sklearn.datasets import load_digits
+from sklearn.model_selection import train_test_split
+from sklearn.model_selection import KFold
+from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import cross_val_score
+
+digits = load_digits()
+X_train, X_test, y_train, y_test = train_test_split(digits.data,
+                                                    digits.target,
+                                                    test_size=0.3)
+
+lr_classifier = LogisticRegression()
+lr_classifier.fit(X_train, y_train)
+s1 = lr_classifier.score(X_test, y_test)
+print(s1)
+
+svm_classifier = SVC()
+svm_classifier.fit(X_train, y_train)
+s2 = svm_classifier.score(X_test, y_test)
+print(s2)
+
+rf_classifier = RandomForestClassifier(n_estimators=50)
+#n_estimators is the number of trees to be used in the forest
+rf_classifier.fit(X_train, y_train)
+s3 = rf_classifier.score(X_test, y_test)
+print(s3)
+
+'''
+s1, s2, s3 change when you run multiple times,
+and the reason for that is that X_train, X_test, y_train, y_test change
+'''
+
+kf = KFold(n_splits=3)
+#n_split is how many folds you split into
+for train_index, test_index in kf.split(['a','b','c','d','e','f']):
+    print (train_index, \
+           test_index)
+
+def get_score(model, X_train, X_test, y_train, y_test):
+    model.fit(X_train, y_train)
+    return model.score(X_test, y_test)
+    
+skf = StratifiedKFold(n_splits=10)
+#stratified kfold keep all folds/splits balanced
+scores_svc = []
+scores_lr = []
+scores_rf = []
+#stratified kfold skf.split() takes both X and y as arguments
+for train_index, test_index in skf.split(digits.data,digits.target):
+    X_train, X_test, y_train, y_test = digits.data[train_index],\
+        digits.data[test_index],\
+            digits.target[train_index],\
+                digits.target[test_index]
+    print(f"{get_score(SVC(), X_train, X_test, y_train, y_test)}\
+          {get_score(LogisticRegression(), X_train, X_test, y_train, y_test)}\
+              {get_score(RandomForestClassifier(), X_train, X_test, y_train, y_test)}")
+    scores_svc.append(get_score(SVC(), X_train, X_test, y_train, y_test))
+    scores_lr.append(get_score(LogisticRegression(), X_train, X_test, y_train, y_test))
+    scores_rf.append(get_score(RandomForestClassifier(n_estimators=50), X_train, X_test, y_train, y_test))
+    print(f'{scores_svc}\
+          {scores_lr}\
+          {scores_rf}')
+#can always tune the number for n_estimators to see how score changes
+'''
+lines above can be replaced by cross_val_score()
+which takes three arguments: model, X, y
+'''
+print(f'{cross_val_score(SVC(),digits.data,digits.target)}')
+print(f'{cross_val_score(LogisticRegression(),digits.data,digits.target)}')
+print(f'{cross_val_score(RandomForestClassifier(),digits.data,digits.target)}')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
